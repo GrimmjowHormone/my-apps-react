@@ -1,13 +1,24 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./App.css";
 import confetti from "canvas-confetti";
 import { Square } from "./components/Square";
 import { TURNS } from "./constans";
-import { checkWinner,checkEndGame } from "./logic/board";
+import { checkWinner, checkEndGame } from "./logic/board";
 import { WinnerModal } from "./components/WinnerModal";
+import { saveGameStorage, resetGameStorage } from "./logic/storage";
 function App() {
-  const [board, setBoard] = useState(Array(9).fill(null));
-  const [turn, setTurn] = useState(TURNS.X);
+  const [board, setBoard] = useState(() => {
+    const boardFromStorage = window.localStorage.getItem("board");
+
+    return boardFromStorage
+      ? JSON.parse(boardFromStorage)
+      : Array(9).fill(null);
+  });
+  const [turn, setTurn] = useState(() => {
+    const turnFromStorage = window.localStorage.getItem("turn");
+
+    return turnFromStorage ?? TURNS.X;
+  });
 
   const [winner, setWinner] = useState(null); //null es que no hay ganador, false es un empate, true es ganador
 
@@ -15,8 +26,8 @@ function App() {
     setBoard(Array(9).fill(null));
     setTurn(TURNS.X);
     setWinner(null);
+    resetGameStorage();
   };
-
 
   const updatedBoard = (index) => {
     // Comprueba si hay algo y de ser asi hace un return
@@ -38,8 +49,24 @@ function App() {
     } else if (checkEndGame(newBoard)) {
       setWinner(false); //empate
     }
+    // Guardar partida aqui
+    saveGameStorage({ board: newBoard, turn: newTurn, winner: newWinner });
     // TODO game over?
   };
+
+  useEffect(() => {
+    const boardFromStorage = window.localStorage.getItem("board");
+    const isWinner=window.localStorage.getItem('winner')
+
+    if (boardFromStorage) {
+      const parsedBoard = JSON.parse(boardFromStorage);
+      const isBoardFull = parsedBoard.every((square) => square !== null);
+
+      if (isBoardFull || isWinner==='○' || isWinner==='⨉') {
+        resetGame();
+      }
+    }
+  }, []);
 
   return (
     <>
@@ -60,7 +87,7 @@ function App() {
           <Square isSelected={turn === TURNS.O}>{TURNS.O}</Square>
         </section>
 
-       <WinnerModal winner={winner} resetGame={resetGame}/>
+        <WinnerModal winner={winner} resetGame={resetGame} />
       </main>
     </>
   );
