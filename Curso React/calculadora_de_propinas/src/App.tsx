@@ -4,7 +4,7 @@ import OrderTotals from "./components/OrderTotals";
 import TipPercentageForm from "./components/TipPercentageForm";
 import { menuItems } from "./data/db";
 import useOrder from "./hooks/useOrder";
-
+// comentario prueba
 function App() {
   const { order, addItem, removeItem, tip, setTip, placeOrder } = useOrder();
   return (
